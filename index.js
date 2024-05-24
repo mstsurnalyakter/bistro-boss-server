@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 require("dotenv").config();
 const app = express();
@@ -26,9 +26,30 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+       const userCollection = client.db("bistroDB").collection("users");
        const menuCollection = client.db("bistroDB").collection("menu");
        const reviewCollection = client.db("bistroDB").collection("reviews");
        const cartCollection = client.db("bistroDB").collection("carts");
+
+
+       //user related
+       app.post("/users",async(req,res)=>{
+        const user = req.body;
+        //insert email if user doesn't exists
+        //it can do many way -> 1. email unique, 2.upsert 3. simple checking
+
+        const query = {email:user?.email};
+        const existingUser = await userCollection.findOne(query);
+        if (existingUser) {
+          return res.send({message:"User already exists.",insertedId:null})
+        }
+
+
+        console.log(user);
+        const result = await userCollection.insertOne(user);
+        res.send(result);
+       })
+
 
        app.get("/menu", async(req,res)=>{
         const result = await menuCollection.find().toArray();
@@ -51,6 +72,10 @@ async function run() {
        app.post("/carts",async(req,res)=>{
         console.log(req.body);
         const result = await cartCollection.insertOne(req.body);
+        res.send(result);
+       })
+       app.delete("/carts/:id",async(req,res)=>{
+        const result = await cartCollection.deleteOne({_id: new ObjectId(req.params.id)});
         res.send(result);
        })
 
