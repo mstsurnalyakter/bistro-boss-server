@@ -138,6 +138,15 @@ async function run() {
         const result = await menuCollection.find().toArray();
         res.send(result);
        })
+       app.get("/menu/:id", async(req,res)=>{
+        const result = await menuCollection.findOne({_id: new ObjectId(req.params.id)});
+        res.send(result);
+       })
+
+       app.delete("/menu/:id",verifyToken,verifyAdmin,async(req,res)=>{
+        const result = await menuCollection.deleteOne({_id: new ObjectId(req.params.id)});
+        res.send(result);
+       });
 
        app.post("/menu",verifyToken,verifyAdmin, async(req,res)=>{
         const item = req.body;
