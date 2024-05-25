@@ -138,8 +138,29 @@ async function run() {
         const result = await menuCollection.find().toArray();
         res.send(result);
        })
+
+
        app.get("/menu/:id", async(req,res)=>{
         const result = await menuCollection.findOne({_id: new ObjectId(req.params.id)});
+        res.send(result);
+       })
+
+
+
+       app.patch("/menu/:id", async(req,res)=>{
+        const item = req.body;
+        console.log(item);
+        const filter = {_id: new ObjectId(req.params.id)}
+        const updateDoc = {
+          $set:{
+            name:item?.name,
+            category:item?.category,
+            price:item?.price,
+            recipe:item?.recipe,
+            image:item?.image
+          }
+        }
+        const result = await menuCollection.updateOne(filter,updateDoc);
         res.send(result);
        })
 
