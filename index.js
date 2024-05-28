@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 
@@ -8,7 +9,17 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
-app.use(cors());
+//Must remove "/" from your production URL
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://bistro-boss-8a16c.web.app",
+      "https://bistro-boss-8a16c.firebaseapp.com",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 
@@ -198,6 +209,21 @@ async function run() {
        app.delete("/carts/:id",async(req,res)=>{
         const result = await cartCollection.deleteOne({_id: new ObjectId(req.params.id)});
         res.send(result);
+       })
+
+       app.post("/create-payment-intent",async(req,res)=>{
+        const {price} = req.body;
+        const amount = parseInt(price*100);
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types:['card']
+        });
+
+        res.send({
+          clientSecret:paymentIntent.client_secret
+        })
+
        })
 
 
